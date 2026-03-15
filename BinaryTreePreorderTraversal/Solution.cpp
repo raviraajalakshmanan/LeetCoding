@@ -1,5 +1,14 @@
+/**
+https://leetcode.com/problems/binary-tree-preorder-traversal/description/
+Given the root of a binary tree, return the preorder traversal of its nodes' values.
+Example 1:
+Input: root = [1,null,2,3]
+Output: [1,2,3]
+*/
+
 #include <iostream>
 #include <memory>
+#include <stack>
 #include <vector>
 
 using namespace std;
@@ -39,14 +48,31 @@ private:
 class Iterativepreorder : public InterfacePreorderStrategy {
 public:
   vector<int> preorder(TreeNode *node) {
-    return {};
+    if (!node)
+      return res;
+    st.push(node);
+    while (!st.empty()) {
+      auto curr = st.top();
+      res.emplace_back(curr->val);
+      st.pop();
+      if (curr->right)
+        st.push(curr->right);
+      if (curr->left)
+        st.push(curr->left);
+    }
+
+    return res;
   }
+
+private:
+  vector<int> res;
+  stack<TreeNode *> st;
 };
 
 class Solution {
 public:
   vector<int> preorderTraversal(TreeNode *root) {
-    unique_ptr<InterfacePreorderStrategy> traversalStrategy = make_unique<RecursivePreorder>();
+    unique_ptr<InterfacePreorderStrategy> traversalStrategy = make_unique<Iterativepreorder>();
     return traversalStrategy->preorder(root);
   }
 };

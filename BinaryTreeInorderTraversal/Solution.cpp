@@ -1,5 +1,23 @@
+/**
+https://leetcode.com/problems/binary-tree-inorder-traversal/
+
+Given the root of a binary tree, return the inorder traversal of its nodes' values.
+Input: root = [1,null,2,3]
+Output: [1,3,2]
+
+Input: root = [1,2,3,4,5,null,8,null,null,6,7,9]
+Output: [4,2,6,5,7,1,3,9,8]
+
+Input: root = []
+Output: []
+
+Input: root = [1]
+Output: [1]
+*/
+
 #include <iostream>
 #include <memory>
+#include <stack>
 #include <vector>
 
 using namespace std;
@@ -39,14 +57,27 @@ private:
 class IterativeInorder : public InterfaceInorderStrategy {
 public:
   vector<int> inorder(TreeNode *node) {
-    return {};
+    while (node || !st.empty()) {
+      while (node) {
+        st.push(node);
+        node = node->left;
+      }
+      node = st.top();
+      st.pop();
+      res.emplace_back(node);
+      node = node->right;
+    }
   }
+
+private:
+  vector<int> res;
+  stack<TreeNode *> st;
 };
 
 class Solution {
 public:
   vector<int> inorderTraversal(TreeNode *root) {
-    unique_ptr<InterfaceInorderStrategy> traversalStrategy = make_unique<RecursiveInorder>();
+    unique_ptr<InterfaceInorderStrategy> traversalStrategy = make_unique<IterativeInorder>();
     return traversalStrategy->inorder(root);
   }
 };
