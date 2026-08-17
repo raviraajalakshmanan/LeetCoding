@@ -1,61 +1,74 @@
 #include <iostream>
+#include <limits>
 #include <queue>
 #include <vector>
-
 using namespace std;
 
-struct Node {
-  int node;
-  int weight;
-  Node(int _node, int _weight) : node(_node), weight(_weight) {}
+struct Edge {
+  int u;
+  int v;
+  int w;
+
+  Edge(int _u, int _v, int _w) : u(_u), v(_v), w(_w) {}
 };
 
-struct NodeDistance {
+struct NodesToBeExplored {
   int node;
-  int distance;
-  NodeDistance(int _node, int _distance) : node(_node), distance(_distance) {}
+  int distanceToReachTheNode;
+
+  bool operator>(const NodesToBeExplored &other) const {
+    return distanceToReachTheNode > other.distanceToReachTheNode;
+  }
 };
 
-void dijkstraAlgorithm(int source, int V, vector<vector<Node>> &adjList) {
-  auto cmp = [](NodeDistance a, NodeDistance b) {
-    if (a.distance == b.distance)
-      return a.node > b.node;
-    return a.distance > b.distance;
-  };
-  priority_queue<NodeDistance, vector<NodeDistance>, decltype(cmp)> pq(cmp);
-  vector<int> distance(V, INT_MAX);
+vector<vector<pair<int, int>>> getAdjList(const int &n, const vector<Edge> &edges) {
+  vector<vector<pair<int, int>>> adjList(n);
+
+  for (auto &e : edges) {
+    adjList[e.u].push_back({e.v, e.w});
+  }
+
+  return adjList;
+}
+
+int main() {
+  int n = 4;
+
+  vector<Edge> edges = {Edge(0, 1, 100), Edge(1, 3, 600), Edge(1, 2, 100), Edge(2, 0, 100),
+                        Edge(2, 3, 200)};
+
+  auto adjList = getAdjList(n, edges);
+
+  int source = 0;
+
+  vector<int> distance(n, numeric_limits<int>::max());
   distance[source] = 0;
-  pq.emplace(NodeDistance(source, distance[source]));
+
+  priority_queue<NodesToBeExplored, vector<NodesToBeExplored>, greater<NodesToBeExplored>> pq;
+
+  pq.push({source, 0});
 
   while (!pq.empty()) {
-    auto [node, nodes_distance] = pq.top();
+    auto [_node, _distanceToReachTheNode] = pq.top();
     pq.pop();
 
-    for (auto neighbours : adjList[node]) {
-      int new_distance = nodes_distance + neighbours.weight;
-      if (new_distance < distance[neighbours.node]) { // relaxation
-        distance[neighbours.node] = new_distance;
-        pq.emplace(NodeDistance(neighbours.node, new_distance));
+    if (_distanceToReachTheNode > distance[_node]) {
+      continue;
+    }
+
+    for (auto &adjNode : adjList[_node]) {
+      auto [node, weight] = adjNode;
+
+      int relaxedDistance = _distanceToReachTheNode + weight;
+
+      if (relaxedDistance < distance[node]) {
+        distance[node] = relaxedDistance;
+        pq.push({node, relaxedDistance});
       }
     }
   }
 
-  for (int i = 0; i < V; i++) {
-    cout << "Distance to " << i << " node is  :" << distance[i] << endl;
+  for (int i = 0; i < distance.size(); i++) {
+    cout << "Node " << i << " -> " << distance[i] << endl;
   }
-}
-
-int main() {
-  // weighted graph so 2d array is used
-
-  int V = 6;
-  vector<vector<Node>> adjList(V);
-  adjList[0] = {Node(1, 4), Node(2, 4)};
-  adjList[1] = {Node(0, 4), Node(2, 2)};
-  adjList[2] = {Node(0, 4), Node(1, 2), Node(3, 3), Node(4, 1), Node(5, 6)};
-  adjList[3] = {Node(2, 3), Node(5, 2)};
-  adjList[4] = {Node(2, 1), Node(5, 3)};
-  adjList[5] = {Node(2, 6), Node(3, 2), Node(4, 3)};
-  int source = 0; // this is imp - we are finding shortest path from source node 0
-  dijkstraAlgorithm(0, V, adjList);
 }
